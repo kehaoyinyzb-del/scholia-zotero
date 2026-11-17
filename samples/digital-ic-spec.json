@@ -1,0 +1,23 @@
+{
+  "file": "digital-ic-spec.pdf",
+  "license": "CC0-1.0",
+  "pageLabels": [
+    "i",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "positive": {
+    "figureFilePage": 3,
+    "ruleFilePage": 2,
+    "thirdEdgeChangeAllowed": false
+  },
+  "counterexample": {
+    "figureFilePage": 5,
+    "ruleFilePage": 4,
+    "thirdEdgeChangeAllowed": true
+  },
+  "registerFilePage": 6
+}

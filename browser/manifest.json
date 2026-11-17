@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Scholia · 保存到 Zotero",
+  "version": "0.3.0",
+  "description": "论文详情页一键保存；配合Scholia Zotero 插件，复用 Zotero translators。",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "保存到 Zotero", "default_popup": "popup.html" },
+  "options_page": "options.html",
+  "content_scripts": [
+    { "matches": ["http://*/*", "https://*/*"], "js": ["content.js"], "run_at": "document_idle" }
+  ]
+}

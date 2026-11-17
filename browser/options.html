@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="utf-8" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="stylesheet" href="extension.css" />
+  <title>Scholia配对</title>
+  <body>
+    <main>
+      <h1>连接 Zotero</h1>
+      <p>在 Zotero 的“Scholia”设置复制配对码，并填写显示的本地端口。</p>
+      <label>端口 <input id="port" type="number" value="23129" /></label>
+      <label>配对码 <input id="pairing" type="password" autocomplete="off" /></label>
+      <button id="save">保存并配对</button>
+      <p id="status" role="status"></p>
+      <p>配对后只保存扩展身份和端口。配对码由 Zotero 登录管理器保存。</p>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

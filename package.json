@@ -1,0 +1,32 @@
+{
+  "name": "zotero-reading-companion",
+  "version": "0.15.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "test": "npm run check && node --test tests/*.test.js",
+    "check": "npm run format:check && npm run lint && npm run check:width",
+    "format:check": "prettier --check src tests scripts browser addon e2e package.json *.config.js",
+    "lint": "eslint src tests scripts browser addon e2e",
+    "check:width": "python3 scripts/check-lines.py",
+    "format": "prettier --write src tests scripts browser addon e2e package.json *.config.js",
+    "build": "node scripts/build.mjs",
+    "dev:prepare": "python3 scripts/dev.py",
+    "fixtures": "python3 scripts/fixtures.py",
+    "probe:codex": "node scripts/probe-codex.mjs --model",
+    "e2e": "node scripts/e2e.mjs",
+    "corpus:prepare": "node scripts/corpus.mjs"
+  },
+  "dependencies": {
+    "katex": "0.19.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "esbuild": "0.28.2",
+    "eslint": "10.15.0",
+    "globals": "17.14.0",
+    "jsdom": "31.0.1",
+    "prettier": "3.10.1"
+  },
+  "type": "module"
+}

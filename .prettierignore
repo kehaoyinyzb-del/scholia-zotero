@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.zotero-dev/
+.logs/
+package-lock.json
+docs/BRIEF*.md
+docs/REQUIREMENTS.md
+docs/STANDARDS.md
+docs/PRIOR-ART.md
+gan-literature-presets.md
+samples/*.pdf
+
+addon/dictionaries/ecdict.json

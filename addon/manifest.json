@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "Scholia",
+  "version": "0.15.0",
+  "homepage_url": "https://github.com/kehaoyinyzb-del/scholia-zotero",
+  "description": "在 Zotero 阅读器旁提问、翻译、总结和记笔记",
+  "applications": {
+    "zotero": {
+      "id": "reading-companion@local",
+      "update_url": "https://raw.githubusercontent.com/kehaoyinyzb-del/scholia-zotero/main/updates.json",
+      "strict_min_version": "10.0",
+      "strict_max_version": "10.*"
+    }
+  }
+}

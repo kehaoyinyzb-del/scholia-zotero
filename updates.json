@@ -1,0 +1,19 @@
+{
+  "addons": {
+    "reading-companion@local": {
+      "updates": [
+        {
+          "version": "0.15.0",
+          "update_link": "https://github.com/kehaoyinyzb-del/scholia-zotero/releases/download/v0.15.0/scholia-0.15.0.xpi",
+          "update_hash": "sha256:4011adfb79e936136f325f288f5567462bb68703aef6f4ba82be34aa493ccf69",
+          "applications": {
+            "zotero": {
+              "strict_min_version": "10.0",
+              "strict_max_version": "10.*"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,2586 @@
+/*
+ * Scholia — one stylesheet for the side panel, the reader selection popup and the
+ * settings pane. Its own warm palette (light and dark), a serif reading face for
+ * answers and a sans interface face. Sections:
+ *   1. Tokens   2. Base controls   3. Panel frame   4. Reading typography
+ *   5. Answers  6. Composer & menus   7. Sheets (history, glossary, notes, notebook)
+ *   8. Onboarding   9. Selection popup   10. Settings   11. Dark mode
+ */
+
+/* 1. Tokens ------------------------------------------------------------------ */
+.rc-panel,
+.rc-settings,
+.rc-popup,
+.rc-library-summary,
+.selection-popup:has(.rc-popup) {
+  --rc-font:
+    system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Segoe UI', 'Microsoft YaHei UI',
+    'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
+  --rc-font-cjk:
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', 'Noto Sans CJK SC',
+    'Source Han Sans SC', sans-serif;
+  /* Reading face: a book serif for Latin and figures; Chinese decided by on-screen tests. */
+  --rc-serif: 'Iowan Old Style', Charter, 'Charis SIL', Georgia, Cambria, 'Times New Roman';
+  --rc-read:
+    var(--rc-serif), 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', SimSun,
+    serif;
+  --rc-mono: ui-monospace, 'SF Mono', Menlo, Consolas, 'Cascadia Mono', monospace;
+
+  --rc-bg: #faf9f5;
+  --rc-surface: #ffffff;
+  --rc-heading: #1d1b17;
+  --rc-text: #2d2a25;
+  --rc-text-2: #6e6a61;
+  --rc-text-3: #9b968b;
+  --rc-fill: #f0ede4;
+  --rc-chip: #f3f1ea;
+  --rc-hover: rgb(92 76 46 / 0.06);
+  --rc-press: rgb(92 76 46 / 0.11);
+  --rc-rule: #e2ddd1;
+  --rc-hairline: #ebe7dd;
+  --rc-accent: #c2633c;
+  --rc-accent-hover: #ad5431;
+  --rc-accent-text: #a8512d;
+  --rc-accent-soft: rgb(194 99 60 / 0.1);
+  --rc-on-accent: #fffaf5;
+  --rc-mark: #e0b25a;
+  --rc-danger: #b4432f;
+  --rc-ok: #5f8a4c;
+  --rc-raised: var(--rc-surface);
+  --rc-shadow:
+    0 0 0 1px rgb(70 56 30 / 0.07), 0 1px 2px rgb(70 56 30 / 0.05),
+    0 10px 28px -6px rgb(70 56 30 / 0.16);
+  --rc-card-shadow:
+    0 0 0 1px rgb(70 56 30 / 0.09), 0 1px 2px rgb(70 56 30 / 0.04),
+    0 6px 20px -8px rgb(70 56 30 / 0.14);
+  --rc-gutter: 22px;
+  --rc-ease: 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.rc-panel,
+.rc-settings,
+.rc-popup,
+.rc-library-summary {
+  color: var(--rc-text);
+  background: var(--rc-bg);
+  font-family: var(--rc-font);
+  font-size: 13px;
+  line-height: 1.5;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: auto;
+  min-width: 0;
+}
+
+/* 2. Base controls --------------------------------------------------------------- */
+:is(.rc-panel, .rc-settings, .rc-popup, .rc-library-summary),
+:is(.rc-panel, .rc-settings, .rc-popup, .rc-library-summary) * {
+  box-sizing: border-box;
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) [hidden],
+.rc-workspace[hidden] {
+  display: none !important;
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup, .rc-library-summary)
+  :is(button, input, select, textarea, summary) {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  margin: 0;
+  min-width: 0;
+  max-width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup, .rc-library-summary) button {
+  /* Zotero caps every macOS button at 25px; ours can wrap to several lines. */
+  max-height: none;
+  padding: 3px 8px;
+  cursor: pointer;
+  white-space: normal;
+  text-align: start;
+  transition:
+    background-color var(--rc-ease),
+    color var(--rc-ease),
+    box-shadow var(--rc-ease),
+    opacity var(--rc-ease);
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup, .rc-library-summary) button:hover:not(:disabled) {
+  background-color: var(--rc-hover);
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup, .rc-library-summary) button:active:not(:disabled) {
+  background-color: var(--rc-press);
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) button:disabled {
+  color: var(--rc-text-3);
+  cursor: default;
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) :focus-visible {
+  outline: 2px solid rgb(194 99 60 / 0.45);
+  outline-offset: 1px;
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) svg.rc-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.4;
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) hr {
+  border: 0;
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--rc-hairline);
+}
+
+.rc-icon-button {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0 !important;
+  border-radius: 9px !important;
+  color: var(--rc-text-2);
+}
+
+.rc-icon-button:hover:not(:disabled) {
+  color: var(--rc-heading);
+}
+
+.rc-icon-button[aria-pressed='true'] {
+  color: var(--rc-heading);
+  background: var(--rc-fill);
+}
+
+/* Fields: soft-edged, warm, never system chrome. */
+:is(.rc-panel, .rc-settings, .rc-popup) :is(input:not([type='checkbox']), select, textarea) {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: var(--rc-surface);
+  box-shadow: inset 0 0 0 1px var(--rc-rule);
+  line-height: 1.45;
+  transition: box-shadow var(--rc-ease);
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) :is(input:not([type='checkbox']), select, textarea):hover {
+  box-shadow: inset 0 0 0 1px var(--rc-text-3);
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) :is(input:not([type='checkbox']), select, textarea):focus {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px var(--rc-accent),
+    0 0 0 3px var(--rc-accent-soft);
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) :is(textarea, input)::placeholder {
+  color: var(--rc-text-3);
+  opacity: 1;
+}
+
+:is(.rc-panel, .rc-settings) select {
+  cursor: pointer;
+  padding-inline-end: 30px;
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) input[type='checkbox'] {
+  appearance: auto;
+  accent-color: var(--rc-accent);
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  flex: none;
+}
+
+.rc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 14px;
+  min-width: 0;
+}
+
+.rc-field > span:first-child {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--rc-text-2);
+}
+
+.rc-checkbox-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+}
+
+.rc-checkbox-field > span:last-child {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--rc-text);
+}
+
+.rc-select-shell {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+  max-width: 100%;
+}
+
+.rc-select-shell > svg {
+  position: absolute;
+  inset-inline-end: 10px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--rc-text-2);
+}
+
+/* Buttons: soft secondary and the single warm primary. */
+:is(.rc-panel, .rc-settings, .rc-popup, .rc-library-summary) .rc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 14px;
+  border-radius: 10px;
+  background: var(--rc-surface);
+  box-shadow:
+    inset 0 0 0 1px var(--rc-rule),
+    0 1px 1px rgb(70 56 30 / 0.04);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup, .rc-library-summary) .rc-button:hover:not(:disabled) {
+  background: var(--rc-chip);
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) .rc-primary:not(.rc-icon-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 16px;
+  border-radius: 10px;
+  color: var(--rc-on-accent);
+  background: var(--rc-accent);
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgb(120 50 20 / 0.18);
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) .rc-primary:not(.rc-icon-button):hover:not(:disabled) {
+  background: var(--rc-accent-hover);
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) .rc-primary:not(.rc-icon-button):disabled {
+  color: var(--rc-text-3);
+  background: var(--rc-fill);
+  box-shadow: none;
+}
+
+:is(.rc-panel, .rc-settings, .rc-popup) .rc-link {
+  margin-inline-start: -8px;
+  color: var(--rc-accent-text);
+}
+
+.rc-muted {
+  color: var(--rc-text-2);
+  font-size: 12px;
+}
+
+@keyframes rc-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.985);
+  }
+}
+
+@keyframes rc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rc-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* 3. Panel frame ----------------------------------------------------------------- */
+.rc-workspace,
+.rc-workspace-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Zotero restores native siblings on tab changes; keep only the active workspace visible. */
+#zotero-context-pane.rc-workspace-active > :not(.rc-workspace) {
+  display: none !important;
+}
+
+/* Narrow panels give back a little gutter to the text. */
+.rc-workspace-body {
+  container-type: inline-size;
+  background: var(--rc-bg, #faf9f5);
+}
+
+@container (max-width: 330px) {
+  .rc-panel {
+    --rc-gutter: 16px;
+  }
+}
+
+.rc-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.rc-reading-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 2px;
+  height: 48px;
+  padding: 0 10px 0 var(--rc-gutter);
+}
+
+.rc-title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--rc-serif), serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  color: var(--rc-heading);
+}
+
+.rc-conversation {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  overflow-anchor: none;
+  padding: 10px var(--rc-gutter) 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rc-rule) transparent;
+}
+
+.rc-panel .rc-latest {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 150px;
+  transform: translateX(-50%);
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--rc-text);
+  background: var(--rc-surface);
+  box-shadow: var(--rc-shadow);
+  animation: rc-fade 160ms ease-out;
+}
+
+.rc-panel .rc-status:empty {
+  display: none;
+}
+
+.rc-panel .rc-status {
+  flex: none;
+  margin: 0 var(--rc-gutter) 10px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--rc-text-2);
+  animation: rc-fade 160ms ease-out;
+}
+
+.rc-panel .rc-status:has(strong) {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--rc-surface);
+  box-shadow: var(--rc-card-shadow);
+  color: var(--rc-text);
+}
+
+.rc-panel .rc-status strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 3px;
+  color: var(--rc-heading);
+}
+
+.rc-panel .rc-status strong::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rc-danger);
+}
+
+.rc-panel .rc-status p {
+  margin: 0;
+  color: var(--rc-text-2);
+}
+
+.rc-turn-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+}
+
+.rc-error-actions {
+  margin: 8px 0 0 -8px;
+}
+
+.rc-error-actions button {
+  color: var(--rc-accent-text);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+/* Empty state: a quiet greeting and three entries, resting just above the composer. */
+.rc-panel .rc-empty {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 6px;
+  animation: rc-fade 240ms ease-out;
+}
+
+.rc-panel .rc-empty-title {
+  margin: 0 0 18px;
+  font-family: var(--rc-read);
+  font-size: 23px;
+  line-height: 1.35;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--rc-heading);
+}
+
+.rc-panel .rc-empty-feedback .rc-empty-title {
+  font-family: var(--rc-font);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.rc-panel .rc-example {
+  /* Block layout: Gecko buttons mis-measure nested flex columns. */
+  position: relative;
+  display: block;
+  flex: none;
+  width: calc(100% + 16px);
+  margin: 0 -8px 2px;
+  padding: 9px 10px 9px 44px;
+  border-radius: 12px;
+  color: var(--rc-text);
+}
+
+.rc-panel .rc-example > svg.rc-icon {
+  position: absolute;
+  inset-inline-start: 10px;
+  top: 50%;
+  width: 26px;
+  height: 26px;
+  margin-top: -13px;
+  padding: 5px;
+  border-radius: 8px;
+  background: var(--rc-chip);
+  color: var(--rc-text-2);
+  transition:
+    background-color var(--rc-ease),
+    color var(--rc-ease);
+}
+
+.rc-panel .rc-example:hover > svg.rc-icon {
+  background: var(--rc-accent-soft);
+  color: var(--rc-accent);
+}
+
+.rc-example-text,
+.rc-example-text > span,
+.rc-example-text > small {
+  display: block;
+}
+
+.rc-example-text > span {
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--rc-heading);
+}
+
+.rc-example-text > small {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--rc-text-2);
+}
+
+.rc-panel .rc-empty > .rc-example:not(:has(svg)) {
+  padding-inline-start: 10px;
+  color: var(--rc-accent-text);
+  font-weight: 500;
+}
+
+/* 4. Reading typography -------------------------------------------------------- */
+/*
+ * Answers read like print: a book serif for Latin and figures, Songti for Chinese,
+ * at 15 px on a 26 px line. Paragraphs are separated by half a line, sections by a
+ * line and a heading. Latin, digits and CJK are spaced in the renderer.
+ */
+.rc-prose {
+  font-family: var(--rc-read);
+  font-size: 15px;
+  line-height: 1.73;
+  color: var(--rc-text);
+  text-align: start;
+  line-break: strict;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  hyphens: manual;
+  font-variant-numeric: lining-nums;
+}
+
+.rc-prose p {
+  margin: 0;
+}
+
+.rc-prose p + p,
+.rc-prose p + :is(.rc-table-scroll, pre),
+.rc-prose :is(.rc-table-scroll, pre) + p {
+  margin-top: 0.6em;
+}
+
+.rc-prose h4 {
+  margin: 1.1em 0 0.2em;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--rc-heading);
+}
+
+.rc-prose h4:first-child {
+  margin-top: 0;
+}
+
+.rc-prose strong {
+  font-weight: 700;
+  color: var(--rc-heading);
+}
+
+.rc-cjk-glyph,
+.rc-punct-half {
+  font-family: 'Songti SC', 'STSong', var(--rc-font-cjk);
+}
+
+.rc-panel :not(.rc-prose) :is(.rc-cjk-glyph, .rc-punct-half),
+.rc-popup :is(.rc-cjk-glyph, .rc-punct-half) {
+  font-family: var(--rc-font-cjk);
+}
+
+.rc-nowrap,
+.rc-tail {
+  white-space: nowrap;
+}
+
+/* Two adjacent full-width marks (e.g. "），") lose half an em, as in set Chinese. */
+.rc-punct-half {
+  letter-spacing: -0.5em;
+}
+
+.rc-prose code,
+.rc-panel :not(pre) > code {
+  font-family: var(--rc-mono);
+  font-size: 0.82em;
+  padding: 0.12em 0.38em;
+  border-radius: 5px;
+  background: var(--rc-chip);
+  color: var(--rc-heading);
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.rc-prose pre {
+  margin: 0.7em 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--rc-chip);
+  overflow: auto;
+  white-space: pre;
+  text-align: start;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.rc-prose pre code {
+  font-family: var(--rc-mono);
+  font-size: inherit;
+  padding: 0;
+  background: none;
+}
+
+.rc-formula {
+  display: inline;
+  font-size: 1.02em;
+}
+
+.rc-formula math {
+  font-family: 'STIX Two Math', 'Latin Modern Math', 'Cambria Math', math;
+}
+
+.rc-formula:has(math[display='block']) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 0.5em 0;
+  padding: 4px 0;
+  text-align: center;
+}
+
+.rc-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0.9em 0;
+  text-align: start;
+}
+
+.rc-panel table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--rc-font);
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.rc-panel :is(th, td) {
+  padding: 6px 12px 6px 0;
+  text-align: start;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rc-hairline);
+  min-width: 44px;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.rc-panel :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.rc-panel th {
+  position: sticky;
+  top: 0;
+  background: var(--rc-bg);
+  font-weight: 600;
+  color: var(--rc-text-2);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  border-bottom-color: var(--rc-rule);
+}
+
+.rc-panel td code,
+.rc-panel .rc-table-original {
+  white-space: nowrap;
+}
+
+.rc-panel .rc-table-compact {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.rc-panel .rc-table-original {
+  display: block;
+  color: var(--rc-text-2);
+  font-weight: 400;
+  font-size: 11.5px;
+}
+
+/* 5. Answers --------------------------------------------------------------------- */
+.rc-turn.rc-enter {
+  animation: rc-fade 200ms ease-out;
+}
+
+.rc-turn {
+  position: relative;
+  padding-bottom: 38px;
+}
+
+.rc-user-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0 0 18px auto;
+  max-width: 86%;
+  width: fit-content;
+}
+
+.rc-panel .rc-question {
+  max-width: 100%;
+  padding: 9px 15px;
+  border-radius: 18px;
+  background: var(--rc-fill);
+  color: var(--rc-heading);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* A quoted passage sits above the question as a warm margin rule. */
+.rc-panel .rc-cite-block {
+  align-self: stretch;
+  padding: 1px 0 1px 12px;
+  border-inline-start: 2px solid var(--rc-accent);
+  color: var(--rc-text-2);
+  font-family: var(--rc-read);
+  font-size: 13px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.rc-panel .rc-cite-block:hover {
+  color: var(--rc-text);
+}
+
+.rc-panel .rc-cite-block > small {
+  display: none;
+}
+
+.rc-panel .rc-collapsible {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rc-panel .rc-collapse-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--rc-lines);
+  overflow: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  width: 100%;
+  text-align: start;
+}
+
+.rc-panel .rc-expanded .rc-collapse-text {
+  display: block;
+}
+
+.rc-panel .rc-collapse-toggle {
+  padding: 0;
+  margin-top: 3px;
+  font-family: var(--rc-font);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--rc-accent-text);
+}
+
+.rc-panel .rc-collapse-toggle:hover:not(:disabled) {
+  background: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rc-claim {
+  position: relative;
+}
+
+.rc-claim + .rc-claim {
+  margin-top: 0.6em;
+}
+
+.rc-turn[data-summary='true'] .rc-claim + .rc-claim {
+  margin-top: 1.2em;
+}
+
+.rc-summary-title {
+  margin: 0 0 3px;
+  font-family: var(--rc-read);
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--rc-heading);
+  letter-spacing: 0.02em;
+}
+
+/* Sources: a small sans page number after the sentence. */
+.rc-reference {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  text-indent: 0;
+  font-family: var(--rc-font);
+}
+
+.rc-panel .rc-citation {
+  display: inline;
+  padding: 1px 4px;
+  margin-inline-start: 4px;
+  border-radius: 5px;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--rc-text-3);
+  vertical-align: 1px;
+}
+
+.rc-panel .rc-citation:hover:not(:disabled) {
+  color: var(--rc-accent-text);
+  background: var(--rc-accent-soft);
+}
+
+/* A quiet tag after claims drawn from the model's own knowledge rather than the text. */
+.rc-panel .rc-background-mark {
+  margin-inline-start: 0.35em;
+  font-family: var(--rc-font);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--rc-text-2);
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+.rc-tooltip {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  inset-inline-end: 0;
+  top: calc(100% + 6px);
+  width: min(300px, 80vw);
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--rc-surface);
+  box-shadow: var(--rc-shadow);
+  white-space: normal;
+  text-align: start;
+  font-size: 12.5px;
+  line-height: 1.55;
+  animation: rc-pop 140ms ease-out;
+}
+
+.rc-reference:hover .rc-tooltip,
+.rc-reference:focus-within .rc-tooltip {
+  display: block;
+}
+
+.rc-tooltip button {
+  display: block;
+  width: 100%;
+  padding: 7px 9px;
+}
+
+.rc-tooltip .rc-source-excerpt {
+  font-family: var(--rc-read);
+  font-size: 13px;
+  color: var(--rc-text);
+}
+
+.rc-tooltip .rc-source-excerpt + button:not(.rc-source-excerpt) {
+  color: var(--rc-accent-text);
+  font-size: 12px;
+  font-weight: 500;
+  padding-block: 2px 7px;
+}
+
+.rc-panel .rc-stream::after {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-inline-start: 5px;
+  border-radius: 50%;
+  background: var(--rc-accent);
+  vertical-align: 1px;
+  animation: rc-pulse 1.1s ease-in-out infinite;
+}
+
+.rc-panel .rc-stream:empty::after {
+  margin: 6px 0;
+}
+
+.rc-turn > p[role='status'] {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--rc-text-2);
+}
+
+/* Suggested follow-ups: soft rounded rows, warm on hover. */
+.rc-followups {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: 16px;
+}
+
+.rc-panel .rc-followup {
+  position: relative;
+  max-width: 100%;
+  padding: 5px 12px 5px 28px;
+  margin-inline-start: -10px;
+  border-radius: 10px;
+  color: var(--rc-text);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.rc-panel .rc-followup::before {
+  content: '↳';
+  position: absolute;
+  inset-inline-start: 11px;
+  color: var(--rc-text-3);
+}
+
+.rc-panel .rc-followup:hover:not(:disabled) {
+  color: var(--rc-accent-text);
+  background: var(--rc-accent-soft);
+}
+
+.rc-panel .rc-followup:hover::before {
+  color: var(--rc-accent);
+}
+
+.rc-answer-footer {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 12px 0 0 -7px;
+  color: var(--rc-text-3);
+  font-size: 12px;
+  transition: opacity var(--rc-ease);
+}
+
+.rc-answer-coverage {
+  flex: 1;
+  min-width: 0;
+  padding-inline-start: 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rc-answer-footer .rc-icon-button {
+  width: 28px;
+  height: 28px;
+  color: var(--rc-text-3);
+}
+
+.rc-answer-footer .rc-icon-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Earlier answers keep their tools out of the reading flow until hovered. */
+.rc-turn[data-summary='false']:not(:last-child) .rc-answer-footer {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 4px;
+  margin-top: 0;
+  opacity: 0;
+}
+
+.rc-turn:hover .rc-answer-footer,
+.rc-turn:focus-within .rc-answer-footer {
+  opacity: 1 !important;
+}
+
+/* Page translation: original above in small sans, translation below in the reading face. */
+.rc-translation {
+  position: relative;
+  padding-inline-end: 28px;
+}
+
+.rc-translation + .rc-translation {
+  margin-top: 20px;
+}
+
+.rc-translation .rc-translation-original {
+  margin-bottom: 5px;
+  font-family: var(--rc-font);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--rc-text-2);
+  text-align: start;
+}
+
+.rc-translation-heading {
+  margin-top: 28px !important;
+}
+
+.rc-translation-heading .rc-translation-target {
+  font-weight: 700;
+  color: var(--rc-heading);
+}
+
+.rc-translation-marginal :is(.rc-translation-original, .rc-translation-target) {
+  font-size: 12px;
+  color: var(--rc-text-2);
+}
+
+.rc-panel .rc-translation-ask {
+  position: absolute;
+  top: 0;
+  inset-inline-end: -6px;
+  opacity: 0;
+}
+
+.rc-translation:hover .rc-translation-ask,
+.rc-translation:focus-within .rc-translation-ask {
+  opacity: 1;
+}
+
+.rc-translation-review {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--rc-text-2);
+}
+
+.rc-translation-review summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--rc-accent-soft);
+  color: var(--rc-accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.rc-translation-review summary::marker {
+  content: '';
+}
+
+.rc-translation-review p {
+  margin: 6px 0 0;
+  padding-inline-start: 11px;
+  border-inline-start: 2px solid var(--rc-accent);
+}
+
+/* 6. Composer & menus ------------------------------------------------------------- */
+/* The composer is the visual centre: a white card floating on the warm page. */
+.rc-panel .rc-composer {
+  position: relative;
+  flex: none;
+  margin: 0 14px 14px;
+  border-radius: 20px;
+  background: var(--rc-surface);
+  box-shadow: var(--rc-card-shadow);
+  transition: box-shadow var(--rc-ease);
+}
+
+.rc-panel .rc-composer::before {
+  /* Lets the conversation fade under the card instead of being cut by it. */
+  content: '';
+  position: absolute;
+  inset: -28px -14px auto;
+  height: 28px;
+  background: linear-gradient(to bottom, transparent, var(--rc-bg));
+  pointer-events: none;
+}
+
+.rc-panel .rc-composer:focus-within {
+  box-shadow:
+    0 0 0 1px rgb(194 99 60 / 0.35),
+    0 1px 2px rgb(70 56 30 / 0.05),
+    0 8px 24px -8px rgb(70 56 30 / 0.18);
+}
+
+.rc-context {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 12px 12px 0 14px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rc-context:not(:has(.rc-page-context:not([hidden]), .rc-context-chip)) {
+  display: none;
+}
+
+.rc-panel .rc-page-context {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--rc-chip);
+  box-shadow: inset 0 0 0 1px var(--rc-hairline);
+  font-size: 12px;
+  color: var(--rc-text);
+}
+
+.rc-panel .rc-page-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 4px 0 9px;
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rc-panel .rc-page-chip:hover:not(:disabled) {
+  background: transparent;
+  color: var(--rc-heading);
+}
+
+.rc-page-chip svg.rc-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--rc-text-2);
+}
+
+.rc-page-chip small {
+  margin-inline-start: 4px;
+  font-size: 11px;
+  color: var(--rc-danger);
+}
+
+.rc-context .rc-icon-button {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px !important;
+  color: var(--rc-text-2);
+}
+
+.rc-context .rc-icon-button svg.rc-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.rc-quote-chips {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  max-height: 120px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.rc-quote-chips:empty {
+  display: none;
+}
+
+.rc-context-chip:not(.rc-page-context) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid var(--rc-accent);
+  font-family: var(--rc-read);
+  font-size: 13px;
+  color: var(--rc-text-2);
+}
+
+.rc-context-chip .rc-quote-text {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rc-context-chip .rc-quote-text:hover:not(:disabled) {
+  background: none;
+  color: var(--rc-text);
+}
+
+.rc-context-chip small {
+  flex: none;
+  font-family: var(--rc-font);
+  font-size: 11px;
+  color: var(--rc-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.rc-panel .rc-composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 50px;
+  max-height: 168px;
+  padding: 13px 16px 4px;
+  resize: none;
+  border-radius: 20px 20px 0 0;
+  box-shadow: none !important;
+  background: transparent;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+
+.rc-composer-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 10px 10px;
+}
+
+.rc-spacer {
+  flex: 1;
+}
+
+.rc-quick-button,
+.rc-model-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 9px !important;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--rc-text-2);
+  white-space: nowrap;
+}
+
+.rc-quick-button svg.rc-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.rc-model-button {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rc-model-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rc-model-tier {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--rc-text-3);
+}
+
+.rc-model-button svg.rc-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--rc-text-3);
+}
+
+:is(.rc-quick-button, .rc-model-button):hover:not(:disabled),
+:is(.rc-quick-button, .rc-model-button)[aria-expanded='true'] {
+  background: var(--rc-chip);
+  color: var(--rc-heading);
+}
+
+.rc-composer-bar .rc-icon-button.rc-primary,
+.rc-composer-bar .rc-stop {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px !important;
+  color: var(--rc-on-accent);
+  background: var(--rc-accent);
+}
+
+.rc-composer-bar .rc-icon-button.rc-primary svg.rc-icon {
+  stroke-width: 1.8;
+}
+
+.rc-composer-bar .rc-icon-button.rc-primary:hover:not(:disabled) {
+  background: var(--rc-accent-hover);
+}
+
+.rc-composer-bar .rc-icon-button.rc-primary:disabled {
+  color: var(--rc-text-3);
+  background: var(--rc-chip);
+}
+
+.rc-composer-bar .rc-stop {
+  color: var(--rc-heading);
+  background: var(--rc-chip);
+}
+
+.rc-composer-bar .rc-stop:hover:not(:disabled) {
+  background: var(--rc-press);
+}
+
+/* Popover menus share one card with a short fade-in. */
+.rc-menu {
+  position: absolute;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  max-width: calc(100% - 16px);
+  padding: 5px;
+  border-radius: 14px;
+  background: var(--rc-surface);
+  box-shadow: var(--rc-shadow);
+  font-family: var(--rc-font);
+  font-size: 13px;
+  animation: rc-pop 140ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.rc-menu > button,
+.rc-model-list > button,
+.rc-model-footer > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  text-align: start;
+  line-height: 1.4;
+  color: var(--rc-text);
+}
+
+.rc-menu hr {
+  margin: 4px 8px;
+}
+
+.rc-header-menu {
+  top: 44px;
+  inset-inline-end: 10px;
+  width: 204px;
+}
+
+.rc-quick-menu {
+  bottom: calc(100% + 8px);
+  inset-inline-start: 0;
+  width: 204px;
+}
+
+.rc-model-menu {
+  bottom: calc(100% + 8px);
+  inset-inline-start: 0;
+  width: 236px;
+  max-height: 50vh;
+  overflow: hidden;
+}
+
+.rc-model-menu input[type='search'] {
+  margin: 4px;
+  min-width: 0;
+}
+
+.rc-model-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rc-model-list > button,
+.rc-model-footer > button {
+  width: 100%;
+}
+
+.rc-model-footer {
+  flex: none;
+}
+
+.rc-menu-label {
+  margin: 6px 10px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--rc-text-3);
+}
+
+.rc-menu-note {
+  margin: 4px 10px 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--rc-text-2);
+}
+
+.rc-menu-loading::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline-start: 6px;
+  border-radius: 50%;
+  background: var(--rc-accent);
+  vertical-align: 1px;
+  animation: rc-pulse 1.1s ease-in-out infinite;
+}
+
+.rc-menu .rc-model-option {
+  justify-content: space-between;
+  height: 30px;
+  min-height: 30px;
+}
+
+.rc-model-option > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rc-model-option[aria-checked='true'] {
+  color: var(--rc-heading);
+  font-weight: 500;
+}
+
+.rc-model-option svg.rc-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--rc-accent);
+  stroke-width: 1.8;
+}
+
+.rc-effort-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 38px;
+  padding: 2px 4px 2px 10px;
+}
+
+.rc-effort-row > span {
+  color: var(--rc-text);
+  white-space: nowrap;
+}
+
+.rc-efforts {
+  display: flex;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--rc-chip);
+}
+
+.rc-panel .rc-efforts button {
+  min-width: 38px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 7px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--rc-text-2);
+  white-space: nowrap;
+}
+
+.rc-panel .rc-efforts button[aria-pressed='true'] {
+  color: var(--rc-heading);
+  font-weight: 500;
+  background: var(--rc-surface);
+  box-shadow:
+    0 0 0 1px var(--rc-hairline),
+    0 1px 2px rgb(70 56 30 / 0.1);
+}
+
+.rc-menu .rc-menu-more {
+  color: var(--rc-text-2);
+}
+
+/* 7. Sheets: history, glossary, notes, notebook ---------------------------------- */
+.rc-sheet {
+  margin: 4px 0 26px;
+  padding: 8px 14px 12px;
+  border-radius: 16px;
+  background: var(--rc-surface);
+  box-shadow: var(--rc-card-shadow);
+  animation: rc-pop 160ms ease-out;
+}
+
+.rc-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  margin-bottom: 4px;
+}
+
+.rc-sheet-header h3 {
+  flex: 1;
+  margin: 0;
+  font-family: var(--rc-serif), serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rc-heading);
+}
+
+.rc-sheet-header .rc-icon-button {
+  margin-inline-end: -8px;
+}
+
+.rc-sheet-empty {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--rc-text-2);
+  list-style: none;
+}
+
+.rc-history-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0 -8px;
+  border-radius: 10px;
+  transition: background-color var(--rc-ease);
+}
+
+.rc-history-row:hover {
+  background: var(--rc-hover);
+}
+
+.rc-panel .rc-history-row > button:first-child {
+  flex: 1;
+  display: block;
+  min-width: 0;
+  padding: 8px 10px;
+}
+
+.rc-panel .rc-history-row > button:first-child:hover:not(:disabled) {
+  background: none;
+}
+
+.rc-history-title,
+.rc-history-meta {
+  display: block;
+}
+
+.rc-history-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--rc-heading);
+}
+
+.rc-history-meta {
+  font-size: 12px;
+  color: var(--rc-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.rc-history-row .rc-icon-button {
+  opacity: 0;
+  margin-inline-end: 4px;
+}
+
+.rc-history-row:hover .rc-icon-button,
+.rc-history-row:focus-within .rc-icon-button {
+  opacity: 1;
+}
+
+.rc-term-list {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.rc-term-list li:not(.rc-sheet-empty) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rc-hairline);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.rc-term-source {
+  font-family: var(--rc-read);
+  color: var(--rc-text-2);
+}
+
+.rc-term-list small {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--rc-text-3);
+}
+
+.rc-term-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: end;
+}
+
+.rc-term-form .rc-field {
+  margin-bottom: 10px;
+}
+
+.rc-term-form .rc-field:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+.rc-term-form .rc-button {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+/* Reading notes view replaces the conversation and composer. */
+.rc-notes-active > :is(.rc-conversation, .rc-composer, .rc-latest, .rc-status) {
+  display: none !important;
+}
+
+.rc-reading-notes {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  padding: 0 var(--rc-gutter);
+  animation: rc-fade 160ms ease-out;
+}
+
+.rc-panel .rc-reading-notes > input[type='search'] {
+  flex: none;
+  margin: 2px 0 8px;
+  border-radius: 999px;
+  padding-inline: 16px;
+  background: var(--rc-surface);
+}
+
+.rc-note-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  margin: 0 calc(-1 * var(--rc-gutter));
+  padding: 0 var(--rc-gutter);
+  scrollbar-width: thin;
+}
+
+.rc-note-list > p {
+  margin: 40px 12px;
+  color: var(--rc-text-2);
+  font-family: var(--rc-read);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.rc-reading-note {
+  padding: 16px 0 10px;
+  border-bottom: 1px solid var(--rc-hairline);
+}
+
+.rc-panel .rc-note-excerpt {
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--rc-mark);
+  font-family: var(--rc-read);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--rc-text-2);
+  cursor: pointer;
+}
+
+.rc-note-comment {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--rc-heading);
+  white-space: pre-wrap;
+}
+
+.rc-note-comment:empty {
+  display: none;
+}
+
+.rc-reading-note .rc-turn-actions {
+  margin: 6px 0 0 -8px;
+  font-size: 12px;
+}
+
+.rc-reading-note .rc-turn-actions > :is(button, small) {
+  color: var(--rc-text-3);
+  font-size: 12px;
+  padding: 2px 8px;
+}
+
+.rc-reading-note .rc-turn-actions > button:hover:not(:disabled) {
+  color: var(--rc-text);
+}
+
+.rc-reading-note .rc-turn-actions > button:first-child {
+  font-variant-numeric: tabular-nums;
+}
+
+.rc-reading-note .rc-turn-actions > :last-child {
+  margin-inline-start: auto;
+  color: var(--rc-accent-text);
+  font-weight: 500;
+}
+
+.rc-reading-note > textarea {
+  min-height: 84px;
+  max-height: 200px;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.rc-note-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rc-reading-notes > p[role='status']:not(:empty) {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--rc-danger);
+}
+
+.rc-notes-footer {
+  display: flex;
+  gap: 8px;
+  flex: none;
+  padding: 14px 0;
+}
+
+.rc-notes-footer .rc-primary {
+  flex: 1;
+}
+
+/* Notebook preview: a short document with its own title scale. */
+.rc-notebook-active > :is(.rc-latest) {
+  display: none !important;
+}
+
+.rc-notebook-active .rc-context,
+.rc-notebook-active .rc-composer-bar > button:not(.rc-primary):not(.rc-stop) {
+  display: none;
+}
+
+.rc-notebook-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.rc-notebook > .rc-notebook-controls:first-child {
+  justify-content: space-between;
+  padding: 2px 0 12px;
+  border-bottom: 1px solid var(--rc-hairline);
+}
+
+.rc-notebook > .rc-notebook-controls:first-child .rc-field {
+  margin: 0;
+}
+
+.rc-notebook > .rc-notebook-controls:first-child > button {
+  color: var(--rc-accent-text);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.rc-notebook > .rc-muted {
+  margin: 12px 0 10px;
+  line-height: 1.6;
+}
+
+.rc-notebook > .rc-notebook-generate {
+  margin-bottom: 4px;
+}
+
+.rc-notebook-preview h2 {
+  margin: 18px 0 6px;
+  font-family: var(--rc-read);
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--rc-heading);
+}
+
+.rc-notebook-preview h3 {
+  margin: 22px 0 6px;
+  font-family: var(--rc-read);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rc-heading);
+}
+
+.rc-notebook-point {
+  padding: 0 0 14px;
+}
+
+.rc-notebook-point > p {
+  margin: 0;
+  font-family: var(--rc-read);
+  font-size: 15px;
+  line-height: 1.73;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--rc-mark);
+}
+
+.rc-panel .rc-claim-label {
+  display: block;
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--rc-text-3);
+}
+
+.rc-notebook-references {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 3px 0 0 -4px;
+}
+
+.rc-panel .rc-text-button,
+.rc-notebook-references > button,
+.rc-notebook-references > span > button {
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--rc-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.rc-panel .rc-text-button:hover:not(:disabled) {
+  color: var(--rc-accent-text);
+  background: var(--rc-accent-soft);
+}
+
+.rc-notebook > .rc-notebook-controls:not(:first-child) {
+  padding: 14px 0 4px;
+}
+
+.rc-notebook > p[role='status']:not(:empty) {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--rc-text-2);
+}
+
+/* 8. Onboarding ---------------------------------------------------------------- */
+.rc-setup-active
+  > :is(.rc-conversation, .rc-secondary, .rc-composer, .rc-status, .rc-latest, .rc-reading-notes) {
+  display: none !important;
+}
+
+.rc-onboarding {
+  flex: 1;
+  overflow: auto;
+  padding: 36px var(--rc-gutter) 24px;
+  animation: rc-fade 240ms ease-out;
+}
+
+.rc-onboarding > h3 {
+  margin: 0 0 10px;
+  font-family: var(--rc-read);
+  font-size: 24px;
+  line-height: 1.35;
+  font-weight: 400;
+  color: var(--rc-heading);
+}
+
+.rc-onboarding > p:first-of-type {
+  margin: 0 0 26px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--rc-text-2);
+}
+
+.rc-panel .rc-onboarding > .rc-primary {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.rc-onboarding-note {
+  display: block;
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--rc-text-2);
+}
+
+.rc-onboarding-note button {
+  display: inline;
+  padding: 0 2px;
+  color: var(--rc-accent-text);
+  font-size: inherit;
+  font-weight: 500;
+}
+
+.rc-onboarding details {
+  margin-top: 22px;
+  border-top: 1px solid var(--rc-hairline);
+}
+
+.rc-onboarding details + details {
+  margin-top: 0;
+}
+
+.rc-onboarding summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0;
+  list-style: none;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--rc-heading);
+}
+
+.rc-onboarding summary::marker {
+  content: '';
+}
+
+.rc-onboarding summary svg.rc-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--rc-text-2);
+  transition: transform var(--rc-ease);
+}
+
+.rc-onboarding details:not([open]) summary svg.rc-icon {
+  transform: rotate(-90deg);
+}
+
+.rc-onboarding details[open] {
+  padding-bottom: 14px;
+}
+
+.rc-onboarding details > :not(summary) {
+  margin-bottom: 12px;
+}
+
+.rc-onboarding details > button:not(.rc-primary) {
+  display: block;
+  margin: 0 0 2px -8px;
+  color: var(--rc-accent-text);
+}
+
+.rc-onboarding [role='status']:not(:empty) {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--rc-text-2);
+}
+
+.rc-onboarding > p[role='status']:not(:empty) {
+  margin: 16px 0 0;
+}
+
+.rc-onboarding [data-diagnostics] {
+  display: block;
+  margin: 4px 0 0 -8px;
+  color: var(--rc-accent-text);
+  font-size: 12.5px;
+}
+
+.rc-onboarding > .rc-turn-actions {
+  margin: 6px 0 0 -8px;
+}
+
+.rc-onboarding > .rc-turn-actions button {
+  color: var(--rc-accent-text);
+}
+
+.rc-api-key {
+  display: flex;
+  gap: 6px;
+}
+
+.rc-api-key input {
+  flex: 1;
+}
+
+/* 9. Selection popup (inside the reader frame) --------------------------------- */
+.selection-popup:has(.rc-popup) {
+  max-width: min(330px, calc(100vw - 48px));
+  border-radius: 16px !important;
+  background: var(--rc-bg) !important;
+  border-color: var(--rc-rule) !important;
+  box-shadow: var(--rc-shadow) !important;
+}
+
+.selection-popup:has(.rc-popup) .custom-sections .section {
+  border: 0;
+  padding: 0;
+}
+
+.rc-popup {
+  display: flex;
+  flex-direction: column;
+  width: 306px;
+  max-width: calc(100vw - 48px);
+  max-height: 50vh;
+  min-height: 0;
+  overflow: hidden;
+  text-align: start;
+}
+
+.selection-popup .rc-popup {
+  background: transparent;
+}
+
+.rc-selection-scroll {
+  min-height: 0;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  padding: 6px 14px 12px;
+}
+
+.rc-selection-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 24px;
+  overflow: hidden;
+}
+
+.rc-popup[data-kind='sentence'] .rc-selection-heading {
+  display: none;
+}
+
+.rc-selection-original {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--rc-serif), serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--rc-heading);
+}
+
+.rc-selection-phonetic {
+  font-size: 12px;
+  color: var(--rc-text-2);
+  white-space: nowrap;
+}
+
+.rc-selection-layer {
+  margin-inline-start: auto;
+  font-size: 11px;
+  color: var(--rc-text-3);
+  white-space: nowrap;
+}
+
+.rc-selection-body {
+  padding-top: 4px;
+}
+
+.rc-selection-result {
+  min-height: 22px;
+  white-space: pre-wrap;
+  font-family: var(--rc-read);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--rc-heading);
+}
+
+.rc-popup[data-kind='word'] .rc-selection-result {
+  font-family: var(--rc-font);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.rc-popup .rc-selection-result.rc-stream {
+  color: var(--rc-text-2);
+}
+
+.rc-selection-other {
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--rc-text-2);
+}
+
+.rc-selection-other:empty {
+  display: none;
+}
+
+.rc-selection-detail {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rc-hairline);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.rc-selection-detail:empty {
+  display: none;
+}
+
+.rc-selection-detail h4 {
+  margin: 6px 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--rc-text-3);
+}
+
+.rc-selection-detail h4:first-child {
+  margin-top: 0;
+}
+
+.rc-selection-detail p {
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+}
+
+.rc-popup .rc-occurrence {
+  display: block;
+  width: calc(100% + 16px);
+  margin-inline-start: -8px;
+  padding: 4px 8px;
+  color: var(--rc-text);
+  font-size: 12.5px;
+}
+
+.rc-selection-detail > button:not(.rc-occurrence) {
+  margin: 4px 0 0 -8px;
+  color: var(--rc-accent-text);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.rc-term-editor {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rc-term-editor input {
+  flex: 1;
+}
+
+.rc-term-editor p {
+  margin: 0;
+  color: var(--rc-text-2);
+}
+
+.rc-note-editor {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rc-hairline);
+}
+
+.rc-note-editor textarea {
+  display: block;
+  min-height: 68px;
+  max-height: 160px;
+  resize: vertical;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.rc-note-editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.rc-note-editor-actions > p {
+  flex: 1;
+  margin: 0;
+  font-size: 12px;
+  color: var(--rc-danger);
+}
+
+.rc-note-editor > p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--rc-text-2);
+}
+
+.rc-selection-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex: none;
+  gap: 2px;
+  padding: 7px 8px;
+  border-top: 1px solid var(--rc-hairline);
+}
+
+.rc-selection-controls > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--rc-text);
+  white-space: nowrap;
+}
+
+.rc-selection-controls > button svg.rc-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--rc-text-2);
+}
+
+.rc-selection-controls > .rc-quote-action {
+  color: var(--rc-on-accent);
+  background: var(--rc-accent);
+}
+
+.rc-selection-controls > .rc-quote-action:hover:not(:disabled) {
+  background: var(--rc-accent-hover);
+}
+
+.rc-selection-controls > .rc-quote-action svg.rc-icon {
+  color: var(--rc-on-accent);
+}
+
+.rc-selection-controls > .rc-icon-button {
+  width: 30px;
+}
+
+.rc-selection-controls > .rc-selection-tools {
+  margin-inline-start: auto;
+}
+
+.rc-selection-more[aria-expanded='true'] {
+  background: var(--rc-hover);
+}
+
+/* 10. Settings pane ------------------------------------------------------------- */
+/* Rendered inside Zotero's preferences window as one warm sheet; the pane scrolls. */
+.rc-settings {
+  max-width: 640px;
+  margin: 2px 2px 24px;
+  padding: 26px 28px 20px;
+  border-radius: 18px;
+  background: var(--rc-bg);
+  box-shadow: var(--rc-card-shadow);
+  font-size: 13px;
+}
+
+.rc-settings-group {
+  padding: 0 0 24px;
+}
+
+.rc-settings-group + .rc-settings-group {
+  padding-top: 22px;
+  border-top: 1px solid var(--rc-hairline);
+}
+
+.rc-settings-group > h3 {
+  margin: 0 0 3px;
+  font-family: var(--rc-serif), serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--rc-heading);
+}
+
+.rc-settings-group > p {
+  margin: 0 0 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--rc-text-2);
+}
+
+.rc-settings .rc-field .rc-select-shell {
+  width: 280px;
+}
+
+.rc-settings .rc-select-shell select {
+  width: 100%;
+}
+
+.rc-settings .rc-field > input:not([type='checkbox']) {
+  max-width: 420px;
+}
+
+.rc-settings .rc-checkbox-field {
+  margin-bottom: 12px;
+}
+
+.rc-settings [aria-invalid='true'] {
+  box-shadow: inset 0 0 0 1.5px var(--rc-danger) !important;
+}
+
+.rc-settings > p[role='status']:not(:empty) {
+  position: sticky;
+  bottom: 8px;
+  margin: 0;
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: var(--rc-surface);
+  box-shadow: var(--rc-shadow);
+  font-size: 12.5px;
+  animation: rc-pop 160ms ease-out;
+}
+
+.rc-settings .rc-add-provider {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.rc-settings .rc-add-provider svg.rc-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Provider list: one rounded card, the open row expands inline. */
+.rc-actions + .rc-provider-list {
+  margin-top: 10px;
+}
+
+.rc-provider-list {
+  border-radius: 14px;
+  background: var(--rc-surface);
+  box-shadow: var(--rc-card-shadow);
+  overflow: hidden;
+}
+
+.rc-provider-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+.rc-settings .rc-remove-provider {
+  margin-inline-end: 10px;
+  color: var(--rc-danger);
+}
+.rc-settings .rc-provider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 14px;
+  border-radius: 0;
+}
+
+.rc-provider-list > * + * {
+  border-top: 1px solid var(--rc-hairline);
+}
+
+.rc-provider-row > span {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--rc-heading);
+}
+
+.rc-provider-row > small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--rc-text-2);
+}
+
+.rc-provider-row > svg.rc-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--rc-text-3);
+  transition: transform var(--rc-ease);
+}
+
+.rc-provider-row[aria-expanded='true'] > svg.rc-icon {
+  transform: rotate(90deg);
+}
+
+.rc-provider-status {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rc-rule);
+}
+
+.rc-provider-status[data-status='passed'] {
+  background: var(--rc-ok);
+}
+
+.rc-provider-status[data-status='failed'] {
+  background: var(--rc-danger);
+}
+
+.rc-provider-editor {
+  padding: 16px 16px 8px 32px;
+  background: var(--rc-bg);
+  animation: rc-fade 160ms ease-out;
+}
+
+.rc-provider-editor .rc-field > :is(input, .rc-select-shell, select) {
+  max-width: 360px;
+}
+
+.rc-key-row {
+  display: flex;
+  gap: 6px;
+  max-width: 440px;
+}
+
+.rc-key-row input {
+  flex: 1;
+}
+
+.rc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.rc-settings .rc-disclosure {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0 10px -8px;
+  color: var(--rc-text-2);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.rc-settings .rc-disclosure:hover:not(:disabled) {
+  color: var(--rc-heading);
+}
+
+.rc-settings .rc-disclosure svg.rc-icon {
+  width: 14px;
+  height: 14px;
+  transform: rotate(-90deg);
+  transition: transform var(--rc-ease);
+}
+
+.rc-settings .rc-disclosure[aria-expanded='true'] svg.rc-icon {
+  transform: none;
+}
+
+.rc-settings .rc-add-provider + div {
+  margin-top: 14px;
+}
+
+.rc-route-fields {
+  padding: 4px 0 0 2px;
+}
+
+.rc-route-fields > .rc-muted {
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+/* Library summary dialog (main window). */
+.rc-library-summary {
+  position: fixed;
+  z-index: 1000;
+  inset: 30% auto auto 30%;
+  width: 360px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  box-shadow: var(--rc-shadow);
+  animation: rc-pop 160ms ease-out;
+}
+
+.rc-library-summary h3 {
+  margin: 0 0 8px;
+  font-family: var(--rc-serif), serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--rc-heading);
+}
+
+.rc-library-summary p {
+  margin: 0 0 12px;
+  color: var(--rc-text-2);
+  line-height: 1.6;
+}
+
+/* Reader toolbar entry: readable in both themes. */
+[data-rc-open-workspace]:not(.rc-workspace-entry) {
+  font-weight: 600 !important;
+  opacity: 1 !important;
+}
+
+/* 11. Dark mode -------------------------------------------------------------------
+ * Its own warm charcoal, not an inversion: surfaces step up in lightness instead of
+ * casting shadows, text is a warm off-white kept below full brightness, and the
+ * accent lightens so it holds contrast on the dark ground. */
+@media (prefers-color-scheme: dark) {
+  .rc-panel,
+  .rc-settings,
+  .rc-popup,
+  .rc-library-summary,
+  .selection-popup:has(.rc-popup) {
+    --rc-bg: #262624;
+    --rc-surface: #30302d;
+    --rc-heading: #f3f0e8;
+    --rc-text: #e6e2d8;
+    --rc-text-2: #aaa59a;
+    --rc-text-3: #827d73;
+    --rc-fill: #1b1b19;
+    --rc-chip: #3a3936;
+    --rc-hover: rgb(250 240 220 / 0.06);
+    --rc-press: rgb(250 240 220 / 0.1);
+    --rc-rule: #46443f;
+    --rc-hairline: #383733;
+    --rc-accent: #d97757;
+    --rc-accent-hover: #e38a6c;
+    --rc-accent-text: #e5916f;
+    --rc-accent-soft: rgb(217 119 87 / 0.16);
+    --rc-on-accent: #fffaf5;
+    --rc-mark: #c99a48;
+    --rc-danger: #e2735f;
+    --rc-ok: #8fbc78;
+    --rc-shadow: 0 0 0 1px rgb(255 248 230 / 0.08), 0 12px 32px -6px rgb(0 0 0 / 0.55);
+    --rc-card-shadow: 0 0 0 1px rgb(255 248 230 / 0.09), 0 8px 24px -10px rgb(0 0 0 / 0.5);
+  }
+}
